@@ -89,4 +89,27 @@ describe("ingestSessions", () => {
     expect(result.ingested).toBe(0);
     expect(result.skipped).toBe(1);
   });
+
+  test("re-ingests sessions when force=true", () => {
+    const fixturePath = join(import.meta.dir, "../tests/fixtures/sample-session.jsonl");
+    const projectDir = join(tempDir, "-Users-test-myapp");
+    mkdirSync(projectDir, { recursive: true });
+    const sessionFile = join(projectDir, "test-session-1.jsonl");
+    copyFileSync(fixturePath, sessionFile);
+
+    const first = ingestSessions([sessionFile], db);
+    expect(first.ingested).toBe(1);
+    expect(first.errors.length).toBe(0);
+
+    const second = ingestSessions([sessionFile], db, true);
+    expect(second.ingested).toBe(1);
+    expect(second.skipped).toBe(0);
+    expect(second.errors.length).toBe(0);
+
+    const sessions = db.query("SELECT * FROM sessions").all();
+    expect(sessions.length).toBe(1);
+
+    const convos = db.query("SELECT * FROM conversations").all();
+    expect(convos.length).toBe(1);
+  });
 });

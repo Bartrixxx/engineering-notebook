@@ -20,8 +20,9 @@ export function scanSources(
 
     for (const projectDir of entries) {
       const excluded = exclude.some((pattern) => {
+        const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&");
         const regex = new RegExp(
-          "^" + pattern.replace(/\*/g, ".*").replace(/\?/g, ".") + "$"
+          "^" + escaped.replace(/\*/g, ".*").replace(/\?/g, ".") + "$"
         );
         return regex.test(projectDir);
       });
@@ -73,12 +74,7 @@ export function ingestSessions(
   const insertProject = db.prepare(`
     INSERT INTO projects (id, path, display_name, session_count)
     VALUES (?, ?, ?, 0)
-    ON CONFLICT(id) DO UPDATE SET
-      session_count = session_count + 1,
-      last_session_at = CASE
-        WHEN excluded.path != '' THEN datetime('now')
-        ELSE last_session_at
-      END
+    ON CONFLICT(id) DO UPDATE SET path = excluded.path
   `);
   const insertSession = db.prepare(`
     INSERT INTO sessions (id, project_id, project_path, source_path, started_at, ended_at, git_branch, version, message_count, ingested_at)
@@ -88,6 +84,8 @@ export function ingestSessions(
     INSERT INTO conversations (session_id, conversation_markdown, extracted_at)
     VALUES (?, ?, datetime('now'))
   `);
+  const deleteConvo = db.prepare(`DELETE FROM conversations WHERE session_id = ?`);
+  const deleteSession = db.prepare(`DELETE FROM sessions WHERE id = ?`);
 
   for (const file of files) {
     if (!force) {
@@ -109,6 +107,10 @@ export function ingestSessions(
       const projectId = deriveProjectId(session.projectPath);
 
       db.transaction(() => {
+        if (force) {
+          deleteConvo.run(session.sessionId);
+          deleteSession.run(session.sessionId);
+        }
         insertProject.run(
           projectId,
           session.projectPath,
