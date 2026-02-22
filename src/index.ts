@@ -46,7 +46,7 @@ switch (command) {
 
     if (!filterDate && !filterProject && !all) {
       const { groupSessionsByDateAndProject } = await import("./summarize");
-      const groups = groupSessionsByDateAndProject(db);
+      const groups = groupSessionsByDateAndProject(db, undefined, undefined, config.day_start_hour);
       console.log(`Found ${groups.length} unsummarized date+project group(s).`);
       console.log("Use --all to summarize everything, or --date/--project to filter.");
       closeDb();
@@ -56,7 +56,7 @@ switch (command) {
     const { summarizeAll } = await import("./summarize");
     const result = await summarizeAll(db, filterDate, filterProject, (done, total, group) => {
       console.log(`[${done + 1}/${total}] Summarizing ${group.projectName} (${group.date})...`);
-    });
+    }, config.day_start_hour);
 
     console.log(`Summarized: ${result.summarized}, Errors: ${result.errors.length}`);
     if (result.errors.length > 0) {

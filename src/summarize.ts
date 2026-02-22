@@ -323,9 +323,10 @@ export async function summarizeAll(
   db: Database,
   filterDate?: string,
   filterProject?: string,
-  onProgress?: (done: number, total: number, group: SessionGroup) => void
+  onProgress?: (done: number, total: number, group: SessionGroup) => void,
+  dayStartHour: number = 5
 ): Promise<{ summarized: number; errors: string[] }> {
-  const groups = groupSessionsByDateAndProject(db, filterDate, filterProject);
+  const groups = groupSessionsByDateAndProject(db, filterDate, filterProject, dayStartHour);
   let summarized = 0;
   const errors: string[] = [];
 
