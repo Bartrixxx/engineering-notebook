@@ -66,7 +66,8 @@ export function renderLayout(title: string, content: string): string {
       color: var(--accent);
       margin-bottom: 0.5rem;
     }
-    .entry-summary { color: var(--text); }
+    .entry-headline { color: var(--text); font-weight: 600; margin-bottom: 0.3rem; }
+    .entry-summary { color: var(--text-muted); font-size: 0.95rem; }
     .entry-topics { margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
     .topic-tag {
       background: var(--accent-2);

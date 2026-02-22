@@ -2,6 +2,7 @@ import { Database } from "bun:sqlite";
 
 type SessionDayRow = {
   id: string;
+  parent_session_id: string | null;
   project_id: string;
   display_name: string;
   started_at: string;
@@ -14,6 +15,7 @@ type SessionDayRow = {
 type JournalSummaryRow = {
   date: string;
   project_id: string;
+  headline: string;
   summary: string;
   topics: string;
   session_ids: string;
@@ -35,7 +37,7 @@ export function renderJournal(
   const sessions = db
     .query(
       `
-    SELECT s.id, s.project_id, p.display_name, s.started_at, s.ended_at,
+    SELECT s.id, s.parent_session_id, s.project_id, p.display_name, s.started_at, s.ended_at,
            s.git_branch, s.message_count, date(s.started_at) as date
     FROM sessions s
     JOIN projects p ON s.project_id = p.id
@@ -82,7 +84,7 @@ export function renderJournal(
     const summaries = db
       .query(
         `
-      SELECT je.date, je.project_id, je.summary, je.topics, je.session_ids
+      SELECT je.date, je.project_id, je.headline, je.summary, je.topics, je.session_ids
       FROM journal_entries je
       WHERE je.date IN (${datePlaceholders})${projectFilter}
     `
@@ -102,9 +104,10 @@ export function renderJournal(
 
     for (const [projId, projectSessions] of projectGroups) {
       const displayName = projectSessions[0]!.display_name;
-      const sessionCount = projectSessions.length;
+      const totalMessages = projectSessions.reduce((sum, s) => sum + s.message_count, 0);
       const earliest = projectSessions[projectSessions.length - 1]!.started_at;
-      const latest = projectSessions[0]!.started_at;
+      const latestSession = projectSessions[0]!;
+      const latest = latestSession.ended_at || latestSession.started_at;
       const timeRange = `${formatTime(earliest)} - ${formatTime(latest)}`;
       const branches = [
         ...new Set(
@@ -117,7 +120,7 @@ export function renderJournal(
       html += `<div class="entry">`;
       html += `<div class="entry-project">`;
       html += `<a href="/project/${encodeURIComponent(projId)}" style="color: var(--accent); text-decoration: none;">${escapeHtml(displayName)}</a>`;
-      html += ` <span class="stat">${sessionCount} session${sessionCount !== 1 ? "s" : ""} &middot; ${timeRange}`;
+      html += ` <span class="stat">${totalMessages} messages &middot; ${timeRange}`;
       if (branches.length > 0) {
         html += ` &middot; ${branches.map((b) => `<code>${escapeHtml(b)}</code>`).join(", ")}`;
       }
@@ -128,6 +131,9 @@ export function renderJournal(
       const summaryKey = `${date}|${projId}`;
       const summary = summaryMap.get(summaryKey);
       if (summary) {
+        if (summary.headline) {
+          html += `<div class="entry-headline">${escapeHtml(summary.headline)}</div>`;
+        }
         html += `<div class="entry-summary">${escapeHtml(summary.summary)}</div>`;
         const topics: string[] = JSON.parse(summary.topics || "[]");
         if (topics.length > 0) {
@@ -139,18 +145,64 @@ export function renderJournal(
         }
       }
 
-      // List individual sessions
-      html += `<div style="margin-top: 0.5rem;">`;
-      for (const session of projectSessions) {
-        const sessionTime = `${formatTime(session.started_at)}${session.ended_at ? " - " + formatTime(session.ended_at) : ""}`;
-        html += `<div class="session-item">`;
-        html += `<a class="session-link" href="/session/${encodeURIComponent(session.id)}">${sessionTime}</a>`;
-        html += `<span class="session-meta">${session.message_count} messages`;
-        if (session.git_branch) {
-          html += ` &middot; ${escapeHtml(session.git_branch)}`;
+      // Group chained sessions (parent → child) into logical conversations
+      const sessionById = new Map(projectSessions.map((s) => [s.id, s]));
+      const childOf = new Map<string, string[]>();
+      const roots: SessionDayRow[] = [];
+      for (const s of projectSessions) {
+        if (s.parent_session_id && sessionById.has(s.parent_session_id)) {
+          const children = childOf.get(s.parent_session_id) || [];
+          children.push(s.id);
+          childOf.set(s.parent_session_id, children);
+        } else {
+          roots.push(s);
         }
-        html += `</span>`;
-        html += `</div>`;
+      }
+
+      // Build chains: root → child → grandchild...
+      function buildChain(root: SessionDayRow): SessionDayRow[] {
+        const chain = [root];
+        let current = root.id;
+        while (childOf.has(current)) {
+          const kids = childOf.get(current)!;
+          const child = sessionById.get(kids[0]!)!;
+          chain.push(child);
+          current = child.id;
+        }
+        return chain;
+      }
+
+      // List sessions, collapsing chains
+      html += `<div style="margin-top: 0.5rem;">`;
+      for (const root of roots) {
+        const chain = buildChain(root);
+        if (chain.length === 1) {
+          const session = chain[0]!;
+          const sessionTime = `${formatTime(session.started_at)}${session.ended_at ? " - " + formatTime(session.ended_at) : ""}`;
+          html += `<div class="session-item">`;
+          html += `<a class="session-link" href="/session/${encodeURIComponent(session.id)}">${sessionTime}</a>`;
+          html += `<span class="session-meta">${session.message_count} messages`;
+          if (session.git_branch) {
+            html += ` &middot; ${escapeHtml(session.git_branch)}`;
+          }
+          html += `</span>`;
+          html += `</div>`;
+        } else {
+          // Chained session: show combined time range and total messages
+          const first = chain[0]!;
+          const last = chain[chain.length - 1]!;
+          const totalMessages = chain.reduce((sum, s) => sum + s.message_count, 0);
+          const chainStart = formatTime(first.started_at);
+          const chainEnd = last.ended_at ? formatTime(last.ended_at) : formatTime(last.started_at);
+          html += `<div class="session-item">`;
+          html += `<a class="session-link" href="/session/${encodeURIComponent(first.id)}">${chainStart} - ${chainEnd}</a>`;
+          html += `<span class="session-meta">${totalMessages} messages &middot; ${chain.length} continued sessions`;
+          if (first.git_branch) {
+            html += ` &middot; ${escapeHtml(first.git_branch)}`;
+          }
+          html += `</span>`;
+          html += `</div>`;
+        }
       }
       html += `</div>`;
 

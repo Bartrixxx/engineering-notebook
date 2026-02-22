@@ -20,6 +20,7 @@ export function initDb(dbPath: string): Database {
 
     CREATE TABLE IF NOT EXISTS sessions (
       id TEXT PRIMARY KEY,
+      parent_session_id TEXT,
       project_id TEXT NOT NULL REFERENCES projects(id),
       project_path TEXT NOT NULL,
       source_path TEXT NOT NULL,
@@ -43,6 +44,7 @@ export function initDb(dbPath: string): Database {
       date TEXT NOT NULL,
       project_id TEXT NOT NULL REFERENCES projects(id),
       session_ids TEXT NOT NULL DEFAULT '[]',
+      headline TEXT NOT NULL DEFAULT '',
       summary TEXT NOT NULL,
       topics TEXT NOT NULL DEFAULT '[]',
       commits TEXT,

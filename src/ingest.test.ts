@@ -57,7 +57,7 @@ describe("ingestSessions", () => {
   });
 
   test("ingests a session file into the database", () => {
-    const fixturePath = join(import.meta.dir, "../tests/fixtures/sample-session.jsonl");
+    const fixturePath = join(import.meta.dir, "../tests/fixtures/test-session-1.jsonl");
     const projectDir = join(tempDir, "-Users-test-myapp");
     mkdirSync(projectDir, { recursive: true });
     const sessionFile = join(projectDir, "test-session-1.jsonl");
@@ -78,7 +78,7 @@ describe("ingestSessions", () => {
   });
 
   test("skips already-ingested sessions", () => {
-    const fixturePath = join(import.meta.dir, "../tests/fixtures/sample-session.jsonl");
+    const fixturePath = join(import.meta.dir, "../tests/fixtures/test-session-1.jsonl");
     const projectDir = join(tempDir, "-Users-test-myapp");
     mkdirSync(projectDir, { recursive: true });
     const sessionFile = join(projectDir, "test-session-1.jsonl");
@@ -91,7 +91,7 @@ describe("ingestSessions", () => {
   });
 
   test("re-ingests sessions when force=true", () => {
-    const fixturePath = join(import.meta.dir, "../tests/fixtures/sample-session.jsonl");
+    const fixturePath = join(import.meta.dir, "../tests/fixtures/test-session-1.jsonl");
     const projectDir = join(tempDir, "-Users-test-myapp");
     mkdirSync(projectDir, { recursive: true });
     const sessionFile = join(projectDir, "test-session-1.jsonl");
