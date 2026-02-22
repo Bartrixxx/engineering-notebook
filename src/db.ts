@@ -55,6 +55,7 @@ export function initDb(dbPath: string): Database {
     CREATE INDEX IF NOT EXISTS idx_sessions_started ON sessions(started_at);
     CREATE INDEX IF NOT EXISTS idx_journal_date ON journal_entries(date);
     CREATE INDEX IF NOT EXISTS idx_journal_project ON journal_entries(project_id);
+    CREATE INDEX IF NOT EXISTS idx_sessions_source ON sessions(source_path);
   `);
 
   _db = db;
