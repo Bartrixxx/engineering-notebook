@@ -66,6 +66,7 @@ export function ingestSessions(
   const errors: string[] = [];
 
   const checkStmt = db.query("SELECT id FROM sessions WHERE source_path = ?");
+  const checkSessionId = db.query("SELECT id FROM sessions WHERE id = ?");
   const insertProject = db.prepare(`
     INSERT INTO projects (id, path, display_name, session_count)
     VALUES (?, ?, ?, 0)
@@ -97,6 +98,15 @@ export function ingestSessions(
       if (session.messageCount === 0) {
         skipped++;
         continue;
+      }
+
+      // Skip if session ID already exists (e.g., same session in multiple project dirs)
+      if (!force) {
+        const existingById = checkSessionId.get(session.sessionId);
+        if (existingById) {
+          skipped++;
+          continue;
+        }
       }
 
       const projectId = session.projectName;
