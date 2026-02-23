@@ -98,6 +98,7 @@ export function renderJournalEntries(db: Database, date: string, selectedEntryId
     }
     const openQuestions: string[] = JSON.parse(entry.open_questions || "[]");
     if (openQuestions.length > 0) {
+      html += `<div class="entry-questions-label">Open questions</div>`;
       html += `<ul class="entry-questions">`;
       for (const q of openQuestions) {
         html += `<li>${escapeHtml(q)}</li>`;

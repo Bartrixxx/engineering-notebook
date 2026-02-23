@@ -248,8 +248,16 @@ export function renderLayout(title: string, content: LayoutContent): string {
       color: var(--text-ghost);
       margin-top: 6px;
     }
+    .entry-questions-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-ghost);
+      margin-top: 8px;
+    }
     .entry-questions {
-      margin-top: 6px;
+      margin-top: 4px;
       padding-left: 14px;
       font-size: 12px;
       color: var(--text-faint);
