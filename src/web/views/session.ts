@@ -38,7 +38,8 @@ export function renderSessionDetail(db: Database, sessionId: string): string {
 
   if (!session) return '<div class="empty-state">Session not found.</div>';
 
-  let html = `<div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle);">`;
+  let html = `<button class="panel-dismiss" onclick="this.parentElement.innerHTML='<div class=\\'empty-state\\'>Select a session to view.</div>'">&times;</button>`;
+  html += `<div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle);">`;
   html += `<div style="font-size: 13px; font-weight: 600; color: var(--text);">${escapeHtml(session.display_name)}</div>`;
   html += `<div style="font-size: 11px; color: var(--text-ghost); margin-top: 2px;">`;
   html += `${session.started_at.slice(0, 10)} · ${session.message_count} messages`;

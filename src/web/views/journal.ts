@@ -147,17 +147,9 @@ export function renderJournalPage(db: Database, date?: string, entryId?: number)
 
   const panel2 = renderJournalEntries(db, date, entryId ?? undefined);
 
-  // Default panel 3: show conversation for first entry if no entry selected
   let panel3 = '<div class="empty-state">Select an entry to view conversations.</div>';
   if (entryId) {
     panel3 = renderEntryConversations(db, entryId);
-  } else {
-    const firstEntry = db.query(`
-      SELECT id FROM journal_entries WHERE date = ? ORDER BY project_id LIMIT 1
-    `).get(date) as { id: number } | null;
-    if (firstEntry) {
-      panel3 = renderEntryConversations(db, firstEntry.id);
-    }
   }
 
   return { panel1, panel2, panel3 };
@@ -178,7 +170,7 @@ export function renderEntryConversations(db: Database, entryId: number, sessionI
 
   const convo = db.query(`SELECT conversation_markdown FROM conversations WHERE session_id = ?`).get(sessionId) as { conversation_markdown: string } | null;
 
-  let html = "";
+  let html = `<button class="panel-dismiss" onclick="this.parentElement.innerHTML='<div class=\\'empty-state\\'>Select an entry to view conversations.</div>'">&times;</button>`;
   // Session navigator
   if (sessionIds.length > 1) {
     html += `<div class="conversation-nav">`;

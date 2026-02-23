@@ -142,7 +142,7 @@ export function renderLayout(title: string, content: LayoutContent): string {
       padding: 12px 0;
     }
     .panel-entries {
-      width: 340px;
+      width: 400px;
       border-right: 1px solid var(--border);
       flex-shrink: 0;
       padding: 20px;
@@ -150,6 +150,24 @@ export function renderLayout(title: string, content: LayoutContent): string {
     .panel-detail {
       flex: 1;
       padding: 20px 24px;
+      position: relative;
+    }
+    .panel-dismiss {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      font-size: 18px;
+      color: var(--text-ghost);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+    .panel-dismiss:hover {
+      color: var(--text-muted);
+      background: var(--surface);
     }
 
     /* Single content (search, settings) */
