@@ -1,36 +1,61 @@
 import { Hono } from "hono";
 import { Database } from "bun:sqlite";
 import { renderLayout } from "./views/layout";
-import { renderJournal } from "./views/journal";
-import { renderProjects } from "./views/projects";
+import { renderJournalPage, renderJournalEntries, renderEntryConversations, renderJournalDateIndex } from "./views/journal";
+import { renderProjectsPage, renderProjectTimeline, renderProjectIndex } from "./views/projects";
 import { renderSearch, renderSearchResults } from "./views/search";
-import { renderSession } from "./views/session";
-import { renderConversation } from "./views/conversation";
+import { renderSettings } from "./views/settings";
+import { renderSessionDetail } from "./views/session";
+import { loadConfig, saveConfig, resolveConfigPath } from "../config";
 
 export function createApp(db: Database): Hono {
   const app = new Hono();
 
-  // Daily Journal
+  // ──────────────────────────────────────────
+  // Full-page routes
+  // ──────────────────────────────────────────
+
+  // Journal (default landing page)
   app.get("/", (c) => {
-    const page = parseInt(c.req.query("page") || "1");
-    return c.html(renderLayout("Engineering Notebook", renderJournal(db, page)));
+    const date = c.req.query("date");
+    const entryId = c.req.query("entry") ? parseInt(c.req.query("entry")!) : undefined;
+    const { panel1, panel2, panel3 } = renderJournalPage(db, date, entryId);
+    return c.html(renderLayout("Engineering Notebook", {
+      activeTab: "journal",
+      panel1,
+      panel2,
+      panel3,
+    }));
   });
 
-  // Projects index
+  // Projects
   app.get("/projects", (c) => {
-    return c.html(renderLayout("Projects", renderProjects(db)));
+    const projectId = c.req.query("project") || undefined;
+    const entryId = c.req.query("entry") ? parseInt(c.req.query("entry")!) : undefined;
+    const { panel1, panel2, panel3 } = renderProjectsPage(db, projectId, entryId);
+    return c.html(renderLayout("Projects — Engineering Notebook", {
+      activeTab: "projects",
+      panel1,
+      panel2,
+      panel3,
+    }));
   });
 
-  // Project timeline
-  app.get("/project/:id", (c) => {
-    const projectId = c.req.param("id");
-    const page = parseInt(c.req.query("page") || "1");
-    return c.html(
-      renderLayout(
-        `Project: ${projectId}`,
-        renderJournal(db, page, projectId)
-      )
-    );
+  // Session detail — show in journal context
+  app.get("/session/:id", (c) => {
+    const sessionId = c.req.param("id");
+    const panel3 = renderSessionDetail(db, sessionId);
+    // Find the date for this session to select it in the index
+    const session = db.query(`SELECT date(started_at) as date FROM sessions WHERE id = ?`).get(sessionId) as { date: string } | null;
+    const date = session?.date;
+    const panel1 = renderJournalDateIndex(db, date || undefined);
+    const panel2 = date ? renderJournalEntries(db, date) : '<div class="empty-state">Session not found.</div>';
+    return c.html(renderLayout("Session — Engineering Notebook", {
+      activeTab: "journal",
+      panel1,
+      panel2,
+      panel3,
+    }));
   });
 
   // Search
@@ -39,40 +64,61 @@ export function createApp(db: Database): Hono {
     if (c.req.header("HX-Request")) {
       return c.html(renderSearchResults(db, q));
     }
-    return c.html(renderLayout("Search", renderSearch(db, q)));
+    return c.html(renderLayout("Search — Engineering Notebook", { body: renderSearch(db, q) }));
   });
 
-  // Session detail
-  app.get("/session/:id", (c) => {
-    const sessionId = c.req.param("id");
-    return c.html(renderLayout("Session", renderSession(db, sessionId)));
+  // Settings (GET)
+  app.get("/settings", (c) => {
+    const config = loadConfig();
+    return c.html(renderLayout("Settings — Engineering Notebook", { body: renderSettings(config) }));
   });
 
-  // API: get conversations for HTMX expand
-  app.get("/api/conversations", (c) => {
-    const sessionIdsRaw = c.req.query("session_ids");
-    if (!sessionIdsRaw) return c.text("Missing session_ids", 400);
+  // Settings (POST)
+  app.post("/settings", async (c) => {
+    const body = await c.req.parseBody();
+    const config = loadConfig();
+    const configPath = resolveConfigPath();
 
-    let sessionIds: string[];
-    try {
-      sessionIds = JSON.parse(decodeURIComponent(sessionIdsRaw));
-    } catch {
-      return c.text("Invalid session_ids", 400);
-    }
+    config.summary_instructions = (body.summary_instructions as string) || "";
+    config.day_start_hour = parseInt((body.day_start_hour as string) || "5", 10);
+    config.sources = ((body.sources as string) || "").split("\n").map(s => s.trim()).filter(Boolean);
+    config.exclude = ((body.exclude as string) || "").split("\n").map(s => s.trim()).filter(Boolean);
+    config.port = parseInt((body.port as string) || "3000", 10);
 
-    const placeholders = sessionIds.map(() => "?").join(",");
-    const convos = db
-      .query(
-        `SELECT session_id, conversation_markdown FROM conversations WHERE session_id IN (${placeholders}) ORDER BY session_id`
-      )
-      .all(...sessionIds) as { session_id: string; conversation_markdown: string }[];
+    saveConfig(configPath, config);
+    return c.redirect("/settings");
+  });
 
-    let html = "";
-    for (const convo of convos) {
-      html += renderConversation(convo.conversation_markdown);
-    }
+  // ──────────────────────────────────────────
+  // HTMX partial routes (return panel HTML fragments)
+  // ──────────────────────────────────────────
 
-    return c.html(html);
+  // Journal: load entries for a date (Panel 2)
+  app.get("/api/journal/entries", (c) => {
+    const date = c.req.query("date");
+    if (!date) return c.text("Missing date", 400);
+    return c.html(renderJournalEntries(db, date));
+  });
+
+  // Journal: load conversation for an entry (Panel 3)
+  app.get("/api/journal/conversation", (c) => {
+    const entryId = parseInt(c.req.query("entry_id") || "0");
+    const sessionIdx = parseInt(c.req.query("session_idx") || "0");
+    if (!entryId) return c.text("Missing entry_id", 400);
+    return c.html(renderEntryConversations(db, entryId, sessionIdx));
+  });
+
+  // Projects: load timeline for a project (Panel 2)
+  app.get("/api/projects/timeline", (c) => {
+    const projectId = c.req.query("project");
+    if (!projectId) return c.text("Missing project", 400);
+    return c.html(renderProjectTimeline(db, projectId));
+  });
+
+  // Legacy route compatibility: /project/:id redirects to /projects?project=:id
+  app.get("/project/:id", (c) => {
+    const projectId = c.req.param("id");
+    return c.redirect(`/projects?project=${encodeURIComponent(projectId)}`);
   });
 
   return app;
