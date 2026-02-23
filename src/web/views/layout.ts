@@ -308,6 +308,44 @@ export function renderLayout(title: string, content: LayoutContent): string {
       font-weight: 400;
     }
 
+    /* Session footer */
+    .session-footer {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .session-footer-resume {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .session-footer-resume code {
+      font-size: 12px;
+      color: var(--text-faint);
+      background: var(--surface);
+      padding: 4px 8px;
+      border-radius: 4px;
+      user-select: all;
+    }
+    .copy-btn {
+      font-size: 11px;
+      padding: 2px 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text-ghost);
+      cursor: pointer;
+    }
+    .copy-btn:hover {
+      color: var(--text-muted);
+      border-color: var(--text-ghost);
+    }
+    .session-footer-source {
+      font-size: 11px;
+      color: var(--text-ghost);
+    }
+
     /* Search page */
     .search-box {
       width: 100%;

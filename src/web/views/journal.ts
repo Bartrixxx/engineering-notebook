@@ -1,6 +1,7 @@
 import { Database } from "bun:sqlite";
 import { escapeHtml, formatDateShort, formatDate, formatTimeAmPm, formatTime, groupByTimeBucket } from "./helpers";
 import { renderConversation } from "./conversation";
+import { renderSessionFooter } from "./session";
 
 type JournalEntryRow = {
   id: number;
@@ -194,6 +195,11 @@ export function renderEntryConversations(db: Database, entryId: number, sessionI
     html += renderConversation(convo.conversation_markdown);
   } else {
     html += '<div class="empty-state">Conversation not available.</div>';
+  }
+
+  const sessionMeta = db.query(`SELECT project_path, source_path FROM sessions WHERE id = ?`).get(sessionId) as { project_path: string; source_path: string } | null;
+  if (sessionMeta) {
+    html += renderSessionFooter(sessionId, sessionMeta.project_path, sessionMeta.source_path);
   }
 
   return html;
