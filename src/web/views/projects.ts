@@ -1,5 +1,6 @@
 import { Database } from "bun:sqlite";
 import { escapeHtml, formatDateShort, groupByTimeBucket } from "./helpers";
+import { renderEntryConversations } from "./journal";
 
 type ProjectRow = {
   id: string;
@@ -126,14 +127,12 @@ export function renderProjectsPage(db: Database, projectId?: string, entryId?: n
   // Default panel 3
   let panel3 = '<div class="empty-state">Select an entry to view conversations.</div>';
   if (entryId) {
-    const { renderEntryConversations } = require("./journal");
     panel3 = renderEntryConversations(db, entryId);
   } else {
     const firstEntry = db.query(`
       SELECT id FROM journal_entries WHERE project_id = ? ORDER BY date DESC LIMIT 1
     `).get(projectId) as { id: number } | null;
     if (firstEntry) {
-      const { renderEntryConversations } = require("./journal");
       panel3 = renderEntryConversations(db, firstEntry.id);
     }
   }

@@ -80,10 +80,12 @@ export function createApp(db: Database): Hono {
     const configPath = resolveConfigPath();
 
     config.summary_instructions = (body.summary_instructions as string) || "";
-    config.day_start_hour = parseInt((body.day_start_hour as string) || "5", 10);
+    const dayStart = parseInt((body.day_start_hour as string) || "5", 10);
+    config.day_start_hour = isNaN(dayStart) ? 5 : Math.max(0, Math.min(23, dayStart));
     config.sources = ((body.sources as string) || "").split("\n").map(s => s.trim()).filter(Boolean);
     config.exclude = ((body.exclude as string) || "").split("\n").map(s => s.trim()).filter(Boolean);
-    config.port = parseInt((body.port as string) || "3000", 10);
+    const port = parseInt((body.port as string) || "3000", 10);
+    config.port = isNaN(port) ? 3000 : Math.max(1, Math.min(65535, port));
 
     saveConfig(configPath, config);
     return c.redirect("/settings");

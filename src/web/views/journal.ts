@@ -1,5 +1,6 @@
 import { Database } from "bun:sqlite";
 import { escapeHtml, formatDateShort, formatDate, formatTimeAmPm, formatTime, groupByTimeBucket } from "./helpers";
+import { renderConversation } from "./conversation";
 
 type JournalEntryRow = {
   id: number;
@@ -45,7 +46,8 @@ export function renderJournalDateIndex(db: Database, selectedDate?: string): str
       const projects = projectsByDate.get(date) || "";
       html += `<a class="index-item${isSelected ? " selected" : ""}" href="/?date=${date}" hx-get="/api/journal/entries?date=${date}" hx-target="#panel-entries" hx-push-url="/?date=${date}">`;
       html += `<div class="index-item-title">${formatDateShort(date)}</div>`;
-      html += `<div class="index-item-sub">${escapeHtml(projects.replace(/,/g, "<br>"))}</div>`;
+      const projectList = projects.split(",").map(p => escapeHtml(p.trim())).join("<br>");
+      html += `<div class="index-item-sub">${projectList}</div>`;
       html += `</a>`;
     }
   }
@@ -180,7 +182,6 @@ export function renderEntryConversations(db: Database, entryId: number, sessionI
   }
 
   if (convo) {
-    const { renderConversation } = require("./conversation");
     html += renderConversation(convo.conversation_markdown);
   } else {
     html += '<div class="empty-state">Conversation not available.</div>';
