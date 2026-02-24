@@ -12,36 +12,6 @@ Think of it as an automatic engineering diary — it watches your AI coding sess
 
 ## Install
 
-### From Binary (Recommended)
-
-Download the latest release for your platform from [Releases](https://github.com/prime-radiant-inc/engineering-notebook/releases):
-
-```sh
-# macOS (Apple Silicon)
-curl -L https://github.com/prime-radiant-inc/engineering-notebook/releases/latest/download/notebook-darwin-arm64 -o notebook
-chmod +x notebook
-sudo mv notebook /usr/local/bin/
-
-# macOS (Intel)
-curl -L https://github.com/prime-radiant-inc/engineering-notebook/releases/latest/download/notebook-darwin-x64 -o notebook
-chmod +x notebook
-sudo mv notebook /usr/local/bin/
-
-# Linux (x64)
-curl -L https://github.com/prime-radiant-inc/engineering-notebook/releases/latest/download/notebook-linux-x64 -o notebook
-chmod +x notebook
-sudo mv notebook /usr/local/bin/
-
-# Linux (ARM64)
-curl -L https://github.com/prime-radiant-inc/engineering-notebook/releases/latest/download/notebook-linux-arm64 -o notebook
-chmod +x notebook
-sudo mv notebook /usr/local/bin/
-```
-
-Windows: download `notebook-windows-x64.exe` from the releases page.
-
-### From Source
-
 Requires [Bun](https://bun.sh) v1.1+.
 
 ```sh
