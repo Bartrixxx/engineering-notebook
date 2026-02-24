@@ -18,53 +18,53 @@ Requires [Bun](https://bun.sh) v1.1+.
 git clone https://github.com/prime-radiant-inc/engineering-notebook.git
 cd engineering-notebook
 bun install
-bun link  # makes `notebook` available globally
+bun link  # makes `engineering-notebook` available globally
 ```
 
 ## Quick Start
 
 ```sh
 # 1. Ingest your Claude Code sessions (defaults to ~/.claude/projects)
-notebook ingest
+engineering-notebook ingest
 
 # 2. Generate journal summaries (uses Claude Code's auth)
-notebook summarize --all
+engineering-notebook summarize --all
 
 # 3. Browse your journal
-notebook serve
+engineering-notebook serve
 # Open http://localhost:3000
 ```
 
 ## Usage
 
-### `notebook ingest`
+### `engineering-notebook ingest`
 
 Scan source directories and ingest session files into the database.
 
 ```sh
-notebook ingest                    # scan default sources
-notebook ingest --source ~/extra   # add an extra source directory
-notebook ingest --force            # re-ingest already-processed sessions
+engineering-notebook ingest                    # scan default sources
+engineering-notebook ingest --source ~/extra   # add an extra source directory
+engineering-notebook ingest --force            # re-ingest already-processed sessions
 ```
 
-### `notebook summarize`
+### `engineering-notebook summarize`
 
 Generate LLM summaries for ingested sessions.
 
 ```sh
-notebook summarize --all                      # summarize everything unsummarized
-notebook summarize --date 2026-02-22          # summarize a specific date
-notebook summarize --project myapp            # summarize a specific project
-notebook summarize --date 2026-02-22 --project myapp  # both filters
+engineering-notebook summarize --all                      # summarize everything unsummarized
+engineering-notebook summarize --date 2026-02-22          # summarize a specific date
+engineering-notebook summarize --project myapp            # summarize a specific project
+engineering-notebook summarize --date 2026-02-22 --project myapp  # both filters
 ```
 
-### `notebook serve`
+### `engineering-notebook serve`
 
 Start the web server.
 
 ```sh
-notebook serve              # default port 3000
-notebook serve --port 8080  # custom port
+engineering-notebook serve              # default port 3000
+engineering-notebook serve --port 8080  # custom port
 ```
 
 ## Configuration

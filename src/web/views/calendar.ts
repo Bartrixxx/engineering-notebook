@@ -239,7 +239,7 @@ export function renderCalendarPage(
   html += `<a ${hx(`/calendar?mode=${mode}&ref=${nextRef}`)} title="Next">&rsaquo;</a>`;
   html += `</div>`;
   html += `<div class="calendar-period">${escapeHtml(period)}</div>`;
-  html += `<div class="calendar-today"><a ${hx(`/calendar?mode=${mode}&ref=${todayRef}`)}>Today</a></div>`;
+  html += `<div class="calendar-today"><a href="/?date=${today}">Today</a></div>`;
   html += `<div class="calendar-mode-toggle">`;
   html += `<a ${hx(`/calendar?mode=week&ref=${startDate}`)} class="${mode === "week" ? "active" : ""}">Week</a>`;
   html += `<a ${hx(`/calendar?mode=month&ref=${startDate}`)} class="${mode === "month" ? "active" : ""}">Month</a>`;

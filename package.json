@@ -10,7 +10,7 @@
     "url": "https://github.com/prime-radiant-inc/engineering-notebook.git"
   },
   "bin": {
-    "notebook": "src/index.ts"
+    "engineering-notebook": "src/index.ts"
   },
   "devDependencies": {
     "@types/bun": "^1.3.9"
