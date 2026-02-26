@@ -83,15 +83,15 @@ Config lives at `~/.config/engineering-notebook/config.json`:
 }
 ```
 
-| Field | Description | Default |
-|-------|-------------|---------|
-| `sources` | Directories to scan for session files | `["~/.claude/projects"]` |
-| `exclude` | Glob patterns for directories to skip | `["-private-tmp*", "*-skill-test-*"]` |
-| `db_path` | SQLite database location | `~/.config/engineering-notebook/notebook.db` |
-| `port` | Web server port | `3000` |
-| `day_start_hour` | Hour (0-23) when a "day" starts (for grouping late-night sessions with the previous day) | `5` |
-| `remote_sources` | SSH remote sources to sync before ingesting | `[]` |
-| `auto_sync_interval` | Seconds between auto-syncs when serving | `60` |
+| Field                | Description                                                                              | Default                                      |
+| -------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `sources`            | Directories to scan for session files                                                    | `["~/.claude/projects"]`                     |
+| `exclude`            | Glob patterns for directories to skip                                                    | `["-private-tmp*", "*-skill-test-*"]`        |
+| `db_path`            | SQLite database location                                                                 | `~/.config/engineering-notebook/notebook.db` |
+| `port`               | Web server port                                                                          | `3000`                                       |
+| `day_start_hour`     | Hour (0-23) when a "day" starts (for grouping late-night sessions with the previous day) | `5`                                          |
+| `remote_sources`     | SSH remote sources to sync before ingesting                                              | `[]`                                         |
+| `auto_sync_interval` | Seconds between auto-syncs when serving                                                  | `60`                                         |
 
 ### Remote Sources
 

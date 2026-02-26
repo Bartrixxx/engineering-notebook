@@ -3,6 +3,7 @@ import { parseSession, type ParsedSession } from "./parser";
 import { join } from "path";
 
 const fixturePath = join(import.meta.dir, "../tests/fixtures/test-session-1.jsonl");
+const codexFixturePath = join(import.meta.dir, "../tests/fixtures/test-codex-session-1.jsonl");
 
 describe("parseSession", () => {
   test("extracts session metadata", () => {
@@ -60,5 +61,29 @@ describe("parseSession", () => {
   test("counts messages correctly", () => {
     const session = parseSession(fixturePath);
     expect(session.messageCount).toBe(5);
+  });
+
+  test("parses Codex session metadata from session_meta", () => {
+    const session = parseSession(codexFixturePath);
+    expect(session.sessionId).toBe("019bf429-646d-70c2-a8b8-a0d69db3f01d");
+    expect(session.projectPath).toBe("/Users/peteror/Code/engineering-notebook");
+    expect(session.version).toBe("0.99.0-alpha.23");
+    expect(session.gitBranch).toBe("main");
+  });
+
+  test("extracts only user/assistant text for Codex sessions", () => {
+    const session = parseSession(codexFixturePath);
+    expect(session.messages.length).toBe(2);
+    expect(session.messages[0]?.role).toBe("user");
+    expect(session.messages[0]?.text).toBe("Please add Codex support.");
+    expect(session.messages[1]?.role).toBe("assistant");
+    expect(session.messages[1]?.text).toContain("I'll add Codex support.");
+  });
+
+  test("skips Codex bootstrap user messages", () => {
+    const session = parseSession(codexFixturePath);
+    const joined = session.messages.map((m) => m.text).join("\n");
+    expect(joined).not.toContain("# AGENTS.md instructions");
+    expect(joined).not.toContain("<environment_context>");
   });
 });

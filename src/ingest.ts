@@ -1,5 +1,5 @@
 import { readdirSync, statSync } from "fs";
-import { join } from "path";
+import { join, relative } from "path";
 import { Database } from "bun:sqlite";
 import { parseSession } from "./parser";
 
@@ -9,44 +9,45 @@ export function scanSources(
   exclude: string[]
 ): string[] {
   const files: string[] = [];
+  const isExcluded = (name: string): boolean =>
+    exclude.some((pattern) => {
+      const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(
+        "^" + escaped.replace(/\*/g, ".*").replace(/\?/g, ".") + "$"
+      );
+      return regex.test(name);
+    });
 
   for (const source of sources) {
-    let entries: string[];
-    try {
-      entries = readdirSync(source);
-    } catch {
-      continue;
-    }
+    const stack = [source];
 
-    for (const projectDir of entries) {
-      const excluded = exclude.some((pattern) => {
-        const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&");
-        const regex = new RegExp(
-          "^" + escaped.replace(/\*/g, ".*").replace(/\?/g, ".") + "$"
-        );
-        return regex.test(projectDir);
-      });
-      if (excluded) continue;
-
-      const projectPath = join(source, projectDir);
-      let stat;
+    while (stack.length > 0) {
+      const dir = stack.pop()!;
+      let entries: string[];
       try {
-        stat = statSync(projectPath);
-      } catch {
-        continue;
-      }
-      if (!stat.isDirectory()) continue;
-
-      let projectFiles: string[];
-      try {
-        projectFiles = readdirSync(projectPath);
+        entries = readdirSync(dir);
       } catch {
         continue;
       }
 
-      for (const file of projectFiles) {
-        if (file.endsWith(".jsonl")) {
-          files.push(join(projectPath, file));
+      for (const entry of entries) {
+        const fullPath = join(dir, entry);
+        let stat;
+        try {
+          stat = statSync(fullPath);
+        } catch {
+          continue;
+        }
+
+        if (stat.isDirectory()) {
+          const relPath = relative(source, fullPath);
+          if (isExcluded(entry) || isExcluded(relPath)) continue;
+          stack.push(fullPath);
+          continue;
+        }
+
+        if (entry.endsWith(".jsonl")) {
+          files.push(fullPath);
         }
       }
     }

@@ -48,4 +48,11 @@ describe("db", () => {
       .get() as { c: number };
     expect(result.c).toBe(0);
   });
+
+  test("initDb creates missing parent directory", () => {
+    const nestedDbPath = join(tempDir, "nested", "dir", "test.db");
+    const db = initDb(nestedDbPath);
+    const result = db.query("SELECT 1 as ok").get() as { ok: number };
+    expect(result.ok).toBe(1);
+  });
 });

@@ -1,3 +1,5 @@
+#!/usr/bin/env bun
+
 import { loadConfig, expandPath } from "./config";
 import { initDb, closeDb } from "./db";
 import { scanSources, ingestSessions } from "./ingest";

@@ -2,6 +2,56 @@ import { Database } from "bun:sqlite";
 
 const SUMMARIZE_MODEL = "claude-haiku-4-5-20251001";
 
+async function readStream(stream: ReadableStream<Uint8Array> | null): Promise<string> {
+  if (!stream) return "";
+  return await new Response(stream).text();
+}
+
+async function getClaudeAuthIssue(): Promise<string | null> {
+  let proc: ReturnType<typeof Bun.spawn>;
+  try {
+    proc = Bun.spawn(["claude", "auth", "status"], {
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+  } catch {
+    return "Claude Code CLI is not installed or not on PATH. Install Claude Code and run `claude auth login`.";
+  }
+
+  const [stdout, stderr, exitCode] = await Promise.all([
+    readStream(proc.stdout),
+    readStream(proc.stderr),
+    proc.exited,
+  ]);
+
+  if (exitCode !== 0) {
+    const details = (stderr || stdout).trim();
+    if (details) {
+      return `Claude auth check failed: ${details}`;
+    }
+    return "Claude auth check failed. Run `claude auth login` and try again.";
+  }
+
+  try {
+    const parsed = JSON.parse(stdout) as { loggedIn?: boolean; authMethod?: string };
+    if (parsed.loggedIn === false) {
+      return "Claude Code is not logged in. Run `claude auth login` and retry `engineering-notebook summarize --all`.";
+    }
+  } catch {
+    // If format changes, don't block summarize on parse failure.
+  }
+
+  return null;
+}
+
+function formatSummarizeError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (msg.includes("Claude Code process exited with code")) {
+    return `${msg}. This usually means Claude Code auth/session is unavailable. Run \`claude auth status\` then \`claude auth login\`.`;
+  }
+  return msg;
+}
+
 /** Determine the "logical date" a timestamp belongs to.
  *  Messages before dayStartHour (e.g. 5 AM) count as the previous calendar day,
  *  so late-night sessions are grouped with the day they started on. */
@@ -367,6 +417,14 @@ export async function summarizeAll(
   const skipReasons: string[] = [];
   const errors: string[] = [];
 
+  if (groups.length > 0) {
+    const authIssue = await getClaudeAuthIssue();
+    if (authIssue) {
+      errors.push(authIssue);
+      return { summarized, skipped, skipReasons, errors };
+    }
+  }
+
   for (const group of groups) {
     try {
       onProgress?.(summarized + skipped, groups.length, group);
@@ -378,7 +436,7 @@ export async function summarizeAll(
         summarized++;
       }
     } catch (err) {
-      errors.push(`${group.date}/${group.projectId}: ${err}`);
+      errors.push(`${group.date}/${group.projectId}: ${formatSummarizeError(err)}`);
     }
   }
 

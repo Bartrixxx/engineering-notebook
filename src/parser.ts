@@ -39,6 +39,25 @@ type RawRecord = {
   isCompactSummary?: boolean;
 };
 
+type CodexRecord = {
+  type: string;
+  timestamp?: string;
+  payload?: {
+    id?: string;
+    cwd?: string;
+    cli_version?: string;
+    git?: {
+      branch?: string;
+    };
+    type?: string;
+    role?: string;
+    content?: Array<{
+      type?: string;
+      text?: string;
+    }>;
+  };
+};
+
 type ContentBlock = {
   type: string;
   text?: string;
@@ -89,12 +108,34 @@ function extractAssistantText(content: string | ContentBlock[]): string | null {
   return texts.length > 0 ? texts.join("\n") : null;
 }
 
+function extractCodexText(
+  content: Array<{ type?: string; text?: string }> | undefined,
+  role: "user" | "assistant"
+): string | null {
+  if (!content || content.length === 0) return null;
+  const type = role === "user" ? "input_text" : "output_text";
+  const texts = content
+    .filter((b) => b.type === type && b.text && b.text !== "(no content)")
+    .map((b) => b.text!.trim())
+    .filter(Boolean);
+  return texts.length > 0 ? texts.join("\n") : null;
+}
+
+function isCodexBoilerplateUserMessage(text: string): boolean {
+  return (
+    text.startsWith("# AGENTS.md instructions for ") ||
+    text.startsWith("<environment_context>") ||
+    text.includes("<environment_context>")
+  );
+}
+
 export function parseSession(filePath: string): ParsedSession {
   const raw = readFileSync(filePath, "utf-8");
   const lines = raw.trim().split("\n").filter(Boolean);
 
-  // The file's own session ID is in the filename
+  // Default to file basename for compatibility; overwritten when available.
   const fileSessionId = basename(filePath, ".jsonl");
+  let sessionId = fileSessionId;
 
   let firstRecordSessionId: string | null = null;
   let parentSessionId: string | null = null;
@@ -104,14 +145,55 @@ export function parseSession(filePath: string): ParsedSession {
   let firstTimestamp: string | null = null;
   let lastTimestamp: string | null = null;
   const messages: ParsedMessage[] = [];
+  let codexFormat = false;
 
   for (const line of lines) {
-    let record: RawRecord;
+    let parsed: RawRecord | CodexRecord;
     try {
-      record = JSON.parse(line);
+      parsed = JSON.parse(line);
     } catch {
       continue; // skip malformed lines
     }
+
+    const codexRecord = parsed as CodexRecord;
+    if (codexRecord.type === "session_meta" || codexFormat) {
+      codexFormat = true;
+
+      if (codexRecord.timestamp) {
+        if (!firstTimestamp) firstTimestamp = codexRecord.timestamp;
+        lastTimestamp = codexRecord.timestamp;
+      }
+
+      if (codexRecord.type === "session_meta") {
+        if (codexRecord.payload?.id) sessionId = codexRecord.payload.id;
+        if (codexRecord.payload?.cwd && !projectPath) projectPath = codexRecord.payload.cwd;
+        if (codexRecord.payload?.cli_version && !version) version = codexRecord.payload.cli_version;
+        if (codexRecord.payload?.git?.branch && !gitBranch) {
+          gitBranch = codexRecord.payload.git.branch;
+        }
+        continue;
+      }
+
+      if (codexRecord.type !== "response_item") continue;
+      if (codexRecord.payload?.type !== "message") continue;
+      if (codexRecord.payload.role !== "user" && codexRecord.payload.role !== "assistant") {
+        continue;
+      }
+
+      const role = codexRecord.payload.role as "user" | "assistant";
+      const text = extractCodexText(codexRecord.payload.content, role);
+      if (!text) continue;
+      if (role === "user" && isCodexBoilerplateUserMessage(text)) continue;
+
+      messages.push({
+        role,
+        text,
+        timestamp: codexRecord.timestamp || "",
+      });
+      continue;
+    }
+
+    const record = parsed as RawRecord;
 
     // Track the first sessionId we see to detect continuations
     if (record.sessionId && !firstRecordSessionId) {
@@ -164,7 +246,7 @@ export function parseSession(filePath: string): ParsedSession {
   const projectName = projectNameFromPath(projectPath);
 
   return {
-    sessionId: fileSessionId,
+    sessionId,
     parentSessionId,
     projectPath,
     projectName,

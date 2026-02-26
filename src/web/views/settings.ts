@@ -23,7 +23,7 @@ export function renderRemoteSourceCard(
       </label>
       <label class="remote-source-field">
         <span class="remote-source-field-label">Path</span>
-        <input class="settings-input" type="text" name="remote_path_${index}" value="${escapeHtml(path)}" placeholder="~/.claude/projects">
+        <input class="settings-input" type="text" name="remote_path_${index}" value="${escapeHtml(path)}" placeholder="~/.claude/projects or ~/.codex/sessions">
       </label>
     </div>
     <div class="remote-source-actions">
@@ -136,7 +136,7 @@ export function renderSettings(config: Config): string {
   // Source directories
   html += `<div class="settings-group">`;
   html += `<div class="settings-label">Source Directories</div>`;
-  html += `<div class="settings-help">Paths to scan for Claude session JSONL files (one per line).</div>`;
+  html += `<div class="settings-help">Paths to scan for Claude Code or Codex session JSONL files (one per line).</div>`;
   html += `<textarea class="settings-input" name="sources" rows="3">${escapeHtml(config.sources.join("\n"))}</textarea>`;
   html += `</div>`;
 
@@ -150,7 +150,7 @@ export function renderSettings(config: Config): string {
   // Remote sources
   html += `<div class="settings-group">`;
   html += `<div class="settings-label">Remote Sources</div>`;
-  html += `<div class="settings-help">Sync Claude sessions from other machines via SSH. Requires passwordless SSH (key-based auth). Run: <code>ssh-copy-id user@host</code></div>`;
+  html += `<div class="settings-help">Sync Claude/Codex sessions from other machines via SSH. Requires passwordless SSH (key-based auth). Run: <code>ssh-copy-id user@host</code></div>`;
   html += `<div id="remote-sources-list">`;
   const remoteSources = config.remote_sources || [];
   for (let i = 0; i < remoteSources.length; i++) {

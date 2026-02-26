@@ -40,6 +40,16 @@ describe("scanSources", () => {
     expect(files.length).toBe(1);
     expect(files[0]).toContain("myapp");
   });
+
+  test("finds .jsonl files in nested directories", () => {
+    const nested = join(tempDir, "2026", "02", "24");
+    mkdirSync(nested, { recursive: true });
+    writeFileSync(join(nested, "rollout-1.jsonl"), "{}");
+
+    const files = scanSources([tempDir], []);
+    expect(files.length).toBe(1);
+    expect(files[0]).toContain("rollout-1.jsonl");
+  });
 });
 
 describe("ingestSessions", () => {
@@ -111,5 +121,53 @@ describe("ingestSessions", () => {
 
     const convos = db.query("SELECT * FROM conversations").all();
     expect(convos.length).toBe(1);
+  });
+
+  test("marks sessions in /subagents/ paths as is_subagent=1", () => {
+    const fixturePath = join(import.meta.dir, "../tests/fixtures/test-session-1.jsonl");
+    const subagentDir = join(tempDir, "-Users-test-myapp", "subagents");
+    mkdirSync(subagentDir, { recursive: true });
+    const sessionFile = join(subagentDir, "test-session-1.jsonl");
+    copyFileSync(fixturePath, sessionFile);
+
+    ingestSessions([sessionFile], db);
+    const session = db.query("SELECT is_subagent FROM sessions").get() as { is_subagent: number } | null;
+    expect(session?.is_subagent).toBe(1);
+  });
+
+  test("marks regular sessions as is_subagent=0", () => {
+    const fixturePath = join(import.meta.dir, "../tests/fixtures/test-session-1.jsonl");
+    const projectDir = join(tempDir, "-Users-test-myapp");
+    mkdirSync(projectDir, { recursive: true });
+    const sessionFile = join(projectDir, "test-session-1.jsonl");
+    copyFileSync(fixturePath, sessionFile);
+
+    ingestSessions([sessionFile], db);
+    const session = db.query("SELECT is_subagent FROM sessions").get() as { is_subagent: number } | null;
+    expect(session?.is_subagent).toBe(0);
+  });
+
+  test("ingests a Codex session file into the database", () => {
+    const fixturePath = join(import.meta.dir, "../tests/fixtures/test-codex-session-1.jsonl");
+    const codexDir = join(tempDir, "2026", "02", "24");
+    mkdirSync(codexDir, { recursive: true });
+    const sessionFile = join(codexDir, "rollout-2026-02-24T09-00-00-019bf429-646d-70c2-a8b8-a0d69db3f01d.jsonl");
+    copyFileSync(fixturePath, sessionFile);
+
+    const result = ingestSessions([sessionFile], db);
+    expect(result.ingested).toBe(1);
+    expect(result.errors.length).toBe(0);
+
+    const session = db.query("SELECT id, project_path, version, message_count FROM sessions").get() as {
+      id: string;
+      project_path: string;
+      version: string;
+      message_count: number;
+    } | null;
+    expect(session).toBeTruthy();
+    expect(session?.id).toBe("019bf429-646d-70c2-a8b8-a0d69db3f01d");
+    expect(session?.project_path).toBe("/Users/peteror/Code/engineering-notebook");
+    expect(session?.version).toBe("0.99.0-alpha.23");
+    expect(session?.message_count).toBe(2);
   });
 });

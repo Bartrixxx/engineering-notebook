@@ -23,7 +23,7 @@ export type Config = {
 export function defaultConfig(): Config {
   const configDir = join(homedir(), ".config", "engineering-notebook");
   return {
-    sources: ["~/.claude/projects"],
+    sources: ["~/.claude/projects", "~/.codex/sessions"],
     exclude: ["-private-tmp*", "*-skill-test-*"],
     db_path: join(configDir, "notebook.db"),
     port: 3000,
@@ -44,7 +44,19 @@ export function loadConfig(path?: string): Config {
     return defaultConfig();
   }
   const raw = readFileSync(configPath, "utf-8");
-  return { ...defaultConfig(), ...JSON.parse(raw) };
+  const parsed = JSON.parse(raw) as Partial<Config>;
+  const config = { ...defaultConfig(), ...parsed };
+
+  // Migrate older default source list to include Codex sessions.
+  if (
+    Array.isArray(parsed.sources) &&
+    parsed.sources.length === 1 &&
+    parsed.sources[0] === "~/.claude/projects"
+  ) {
+    config.sources = defaultConfig().sources;
+  }
+
+  return config;
 }
 
 export function saveConfig(path: string, config: Config): void {

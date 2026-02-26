@@ -1,9 +1,17 @@
 import { Database } from "bun:sqlite";
+import { mkdirSync } from "fs";
+import { homedir } from "os";
+import { dirname, join } from "path";
 
 let _db: Database | null = null;
 
 export function initDb(dbPath: string): Database {
-  const db = new Database(dbPath, { create: true });
+  const resolvedPath = dbPath.startsWith("~/")
+    ? join(homedir(), dbPath.slice(2))
+    : dbPath;
+  mkdirSync(dirname(resolvedPath), { recursive: true });
+
+  const db = new Database(resolvedPath, { create: true });
   db.exec("PRAGMA journal_mode = WAL");
   db.exec("PRAGMA foreign_keys = ON");
 
